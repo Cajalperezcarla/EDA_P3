@@ -1,3 +1,11 @@
+/*
+Autores: 
+Nerea López Fernández (NIP: 966496)
+Carla Genoveva Cajal Pérez (NIP: 875406)
+Eva Qiuxiang Campo Calvo (NIP: 926619)
+*/
+
+
 #ifndef _FECHA_HPP
 #define _FECHA_HPP
 

@@ -1,3 +1,11 @@
+/*
+Autores: 
+Nerea López Fernández (NIP: 966496)
+Carla Genoveva Cajal Pérez (NIP: 875406)
+Eva Qiuxiang Campo Calvo (NIP: 926619)
+*/
+
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -6,26 +14,17 @@
 #include "coleccionITF.hpp"
 using namespace std;
 
+
+bool leerFecha(ifstream& entrada, Fecha& f);
+bool leerAnuncio(ifstream& entrada, Anuncio& a);
+string leerIdentificador (ifstream& entrada);
+string leerCategoria(ifstream& entrada);
+void escribirFecha(ofstream& salida, const Fecha& f);
+void escribirAnuncio(ofstream& salida, const Anuncio& a);
+void escribirListadoAnuncios(ofstream& salida, coleccion<Anuncio>& c);
+void escribirIdentificadores(ofstream& salida, const string& identificadores);
+
 // Funciones auxiliares
-
-// Para A, C
-bool leerAnuncio(ifstream& entrada, Anuncio& a) {
-
-    string identificador, titulo, descripcion, categoria;
-    Fecha publicacion, finalizacion;
-
-    if (!getline(entrada, identificador) || !getline(entrada, titulo) || !getline(entrada, descripcion) || !getline(entrada, categoria)) {
-        return false;
-    }
-    if (!leerFecha(entrada, publicacion) || !leerFecha(entrada, finalizacion)) {
-        return false;
-    }
-
-    crearAnuncio(identificador, titulo, descripcion, categoria, publicacion, finalizacion, a);
-
-    return true;
-}
-
 // Para A, C, P, LO
 bool leerFecha(ifstream& entrada, Fecha& f) {
 
@@ -53,6 +52,26 @@ bool leerFecha(ifstream& entrada, Fecha& f) {
 
     return !error;
 }
+
+
+// Para A, C
+bool leerAnuncio(ifstream& entrada, Anuncio& a) {
+
+    string identificador, titulo, descripcion, categoria;
+    Fecha publicacion, finalizacion;
+
+    if (!getline(entrada, identificador) || !getline(entrada, titulo) || !getline(entrada, descripcion) || !getline(entrada, categoria)) {
+        return false;
+    }
+    if (!leerFecha(entrada, publicacion) || !leerFecha(entrada, finalizacion)) {
+        return false;
+    }
+
+    crearAnuncio(identificador, titulo, descripcion, categoria, publicacion, finalizacion, a);
+
+    return true;
+}
+
 
 // Para O, E, B
 string leerIdentificador(ifstream& entrada) {
@@ -128,8 +147,8 @@ void procesarA(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
 void procesarC(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
     Anuncio a;
     bool anuncioLeido = leerAnuncio(entrada, a);
-    
-    bool anuncioExistente = esta(suIdentificador(a), c);
+    string identificador = suIdentificador(a);
+    bool anuncioExistente = esta(identificador, c);
     
     if (anuncioExistente){
         //escribe linea fich salida de anuncio cambiado
@@ -140,51 +159,43 @@ void procesarC(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
     }else{
         //escribe linea fich salida de anuncio no cambiado
         salida << "NO CAMBIADO: ";
-        suIdentificador(a);
-        salida << endl;
+        salida << identificador << endl;
     }
 
 }
 
 // Obtiene la información de un anuncio de la colección
-void procesarO(ifstream& entrada ,ofstream& salida, const coleccion<Anuncio>& c) {
-    Anuncio a;
-    bool anuncioLeido = leerAnuncio(entrada, a);
-    
-    bool anuncioExistente = esta(suIdentificador(a), c);
-//escribirAnuncio
-    if (anuncioExistente) {
-        salida << "LOCALIZADO: " << endl;
-        escribirAnuncio(salida, a);
-        salida << endl;
+void procesarO(ifstream& entrada ,ofstream& salida, coleccion<Anuncio>& c) {
+    string identificador = leerIdentificador(entrada);
+    if(esta(identificador,c)) {
+        Anuncio a = obtenerITF(identificador,c);
+        salida << "LOCALIZADO: ";
+        escribirAnuncio(salida,a);
     } else {
-        salida << "NO LOCALIZADO: " << ident << endl;
-    }    
+        salida << "NO LOCALIZADO: " << identificador << endl;
+    }
 }
 
 
 // Comprueba que existe un anuncio por identificador
-void procesarE(ofstream& entrada, ofstream& salida, const coleccion<Anuncio>& c) {
-    Anuncio a;
-    bool anuncioLeido = leerAnuncio(entrada, a);
-    
-    bool anuncioExistente = esta(suIdentificador(a), c);
-    if (anuncioExistente) {
-        salida << "EXISTENTE: " << ident << endl;
+void procesarE(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
+    string identificador = leerIdentificador(entrada);
+    if(esta(identificador,c)) {
+        salida << "EXISTENTE: " << identificador << endl;
     } else {
-        salida << "DESCONOCIDO: " << ident << endl;
+        salida << "DESCONOCIDO: " << identificador << endl;
     }
 }
 
 
 // Comprueba que existe un anuncio por categoría
-void procesarEC(ifstream& entrada, ofstream& salida, const coleccion<Anuncio> c) {
+void procesarEC(ifstream& entrada, ofstream& salida, coleccion<Anuncio> c) {
     string categoria = leerCategoria(entrada);
     
-    if (existeTema(categoria, c)) {
-        salida << "CATEGORIA CONOCIDA: " << categ << endl;
+    if (existeTema(categoria,c)) {
+        salida << "CATEGORIA CONOCIDA: " << categoria << endl;
     } else {
-        salida << "CATEGORIA DESCONOCIDA: " << categ << endl;
+        salida << "CATEGORIA DESCONOCIDA: " << categoria << endl;
     }
 }
 
@@ -196,7 +207,7 @@ void procesarB(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
         borrar(identificador,c);
         salida << "BORRADO: " << identificador << endl;
     }else{
-        salida << "NO BORRADO: " << endl;
+        salida << "NO BORRADO: " << identificador << endl;
     }
     
 }
@@ -205,7 +216,7 @@ void procesarB(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
 void procesarBC(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
     string categoria = leerCategoria(entrada);
 
-    if(exsiteTEma(categoria,c)){
+    if(existeTema(categoria,c)){
         zanjarTema(categoria,c);
         salida << "ELIMINADOS: " << categoria << endl;
     }else{
@@ -225,7 +236,7 @@ void procesarP(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
         salida << endl;
         
     }else{
-        salida << "NO PURGADOS: " << endl;
+        salida << "NO PURGADOS: ";
         escribirFecha(salida,f);
         salida << endl;
         
@@ -233,44 +244,29 @@ void procesarP(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
 }
 
 // Lista los identificadores de los anuncios obsoletos de la colección
-void procesarLO(ifstream& entrada, ofstream& salida, ) {
+void procesarLO(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
     Fecha f;
     leerFecha(entrada, f);
 
     salida << "ANTERIORES A: ";
     escribirFecha(salida, f);
-    escribirIdentificadores(salida, obsoletos(f, ":::",c));
+    escribirIdentificadores(salida,obsoletos(f,":::",c));
     salida << endl;
 }
 
 // Lista los identificadores de los anuncios de una categoría dada
-void procesarLC(ifstream& entrada, ofstream& salida, ) {
+void procesarLC(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
     string categoria = leerCategoria(entrada);
 
     salida << "DE CATEGORIA: " << categoria;
-    escribirIdentificadores(salida, delTema(categoria, ":::", c));
+    escribirIdentificadores(salida, delTema(categoria,":::",c));
     salida << endl;
 }
 
 // Lista la información de todos los anuncios por orden lexicográfico
-void procesarLT(ifstream& entrada, ofstream& salida, ) {
-    salida << "-----LISTADO:" << tamanyo(c) << endl;
-    iniciarIterador(c);
-
-    while (existeSiguiente(c)){
-        Anuncio a = siguiente(c);
-
-        salida << "[" << suIdentificador(a) << " -de-> " << suCategoria(a) << " ;;; " << suTitulo(a) << " ] (";
-        escribirFecha(salida, suPublicacion(a));
-        salida << ") --- " suDescripcion(a) << " --- (";
-        escribirFecha(salida, suFinalizacion(a));
-        salida << ")" << endl;
-
-        avanza(c)
-    }
-    salida << "-----" << endl;
+void procesarLT(ifstream& entrada, ofstream& salida, coleccion<Anuncio>& c) {
+    escribirListadoAnuncios(salida, c);
 }
-
 // Programa de prueba que gestiona una colección de anuncios
 int main () {
 
@@ -307,7 +303,7 @@ int main () {
         } else if (instruccion == "O") {
             procesarO(f_entrada, f_salida, c);
         } else if (instruccion == "E") {
-            procesarE();
+            procesarE(f_entrada, f_salida, c);
         } else if (instruccion == "EC") {
             procesarEC(f_entrada, f_salida, c);
         } else if (instruccion == "B") {
