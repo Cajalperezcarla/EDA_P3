@@ -16,7 +16,6 @@ Eva Qiuxiang Campo Calvo (NIP: 926619)
 using namespace std;
 
 //PREDECLARACION DEL TAD GENERICO coleccion (inicio INTERFAZ)
-//a rellenar...
 
 template <typename T> struct coleccion;
 
@@ -111,6 +110,13 @@ template <typename T> void iniciarIterador(coleccion<T>& c);
 
  //FIN predeclaracion del TAD GENERICO coleccion (Fin INTERFAZ)
 
+/*
+ * Función auxiliar
+ * Elimina todos los ítems de la colección, liberando la memoria
+ * dinámica utilizada y dejando la colección vacía.
+ */
+ template <typename T> void liberar(coleccion<T>& c);
+
 
  //DECLARACION DEL TAD GENERICO coleccion
  
@@ -134,6 +140,8 @@ struct coleccion{
     friend bool existeSiguiente<T>(coleccion<T>& c);
     friend T siguiente<T>(coleccion<T>& c);
     friend void avanza<T>(coleccion<T>& c);
+    // Función auxiliar para liberar la memoria
+    friend void liberar<T>(coleccion<T>& c);
     private: //declaracion de la representacion interna del tipo 
         struct Nodo{ //clase anidada
             T dato;
@@ -429,6 +437,26 @@ T siguiente(coleccion<T>& c) {
 template<typename T> 
 void avanza(coleccion<T>& c) {
     c.iterador = c.iterador->sig;
+}
+
+/*
+ * Función auxiliar
+ * Elimina todos los ítems de la colección, liberando la memoria
+ * dinámica utilizada y dejando la colección vacía.
+ */
+template <typename T>
+void liberar(coleccion<T>& c) {
+    typename coleccion<T>::Nodo* actual = c.primero;
+
+    while (actual != nullptr) {
+        typename coleccion<T>::Nodo* aBorrar = actual;
+        actual = actual->sig;
+        delete aBorrar;
+    }
+
+    c.primero = nullptr;
+    c.iterador = nullptr;
+    c.total = 0;
 }
 
 #endif //fin de coleccionITF.hpp
